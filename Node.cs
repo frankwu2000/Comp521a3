@@ -7,6 +7,7 @@ public class Node {
 	public int hCost;
 	public int gridX;
 	public int gridY;
+	public Node parentNode;
 
 	public bool Walkable;
 	public Vector3 WorldPosition;
@@ -19,13 +20,14 @@ public class Node {
 		this.gridY = _gridY;
 	}
 
-	public Node(bool walkable, Vector3 WorldPosition,float TimeLayer){
+	public Node(bool walkable, Vector3 WorldPosition){
 		this.Walkable = walkable;
 		this.WorldPosition = WorldPosition;
-		this.TimeLayer = TimeLayer;
 	}
 
 	public int fCost{
-		return gCost + hCost;
+		get{
+			return gCost + hCost;
+		}
 	}
 }

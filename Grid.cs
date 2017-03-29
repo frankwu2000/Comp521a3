@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 [System.Serializable]
-public class Grid: MonoBehaviour {
+public class Grid {
 	public LayerMask UnwalkableMask;
 	public Vector2 GridWorldSize;
 	public float NodeRadius;
@@ -12,21 +12,19 @@ public class Grid: MonoBehaviour {
 	public int GridSizex,GridSizey;
 
 	public Grid(){
-		CreateGrid ();
+		
 	}
 
-	void Start(){
-		CreateGrid ();
-	}
-
-	void CreateGrid(){
+	public void CreateGrid(){
+		NodeRadius = 0.5f;
 		GridWorldSize = new Vector2 (51,31);
 		NodeDiameter = NodeRadius * 2;
 		GridSizex = Mathf.RoundToInt (GridWorldSize.x/NodeDiameter);
 		GridSizey = Mathf.RoundToInt (GridWorldSize.y/NodeDiameter);
 
+
 		grid = new Node[GridSizex,GridSizey];
-		Vector3 WorldBottomLeft = transform.position - Vector3.right * GridWorldSize.x/2 - Vector3.forward * GridWorldSize.y/2;
+		Vector3 WorldBottomLeft = Vector3.zero - Vector3.right * GridWorldSize.x/2 - Vector3.forward * GridWorldSize.y/2;
 
 		for(int x = 0 ;x < GridSizex;x++){
 			for(int y = 0 ; y < GridSizey;y++){
@@ -38,19 +36,28 @@ public class Grid: MonoBehaviour {
 		}
 	}
 
-	void OnDrawGizmos(){
-		Gizmos.color = Color.cyan;
-		Gizmos.DrawWireCube(transform.position,new Vector3(GridWorldSize.x,0,GridWorldSize.y));
+//	List<Node> path = new List<Node> ();
 
-		if (grid != null) {
-			foreach(Node node in grid){
-				
-				Gizmos.color = (node.Walkable)?Color.cyan:Color.red;
-				Gizmos.DrawWireCube (node.WorldPosition,Vector3.one * (NodeDiameter));
-			}
-
-		}
-	}
+//	//gizmos for dubugging
+//	void OnDrawGizmos(){
+//		Gizmos.color = Color.cyan;
+//		Gizmos.DrawWireCube(Vector3.zero,new Vector3(GridWorldSize.x,0,GridWorldSize.y));
+//
+////		Debug.Log ("pathcount: "+ path.Count);
+//		
+//
+//		if(grid != null) {
+//			foreach(Node node in grid){
+//				Gizmos.color = (node.Walkable)?Color.cyan:Color.red;
+////				if (path.Contains (node)) {
+////					Gizmos.color = Color.blue;
+////				}
+//
+//				Gizmos.DrawCube (node.WorldPosition,new Vector3(1,3,1) * (NodeDiameter));
+//			}
+//
+//		}
+//	}
 
 	public List<Node> GetNeighbors(Node node){
 		List<Node> neighbors = new List<Node> ();
@@ -80,6 +87,8 @@ public class Grid: MonoBehaviour {
 		int y = Mathf.RoundToInt((GridSizey-1) * percentY);
 		return grid[x,y];
 	}
+
+
 
 
 }

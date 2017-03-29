@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class Pathfinding : MonoBehaviour {
 	//reservation table size
-	public int tableSize;
-	public Dictionary<Node,int[]> reservationTable;
+	//public int tableSize;
+//	public Dictionary<Node,int[]> reservationTable;
 	public Grid grid;
 
+	public Transform seeker, target;
 
 	void Awake(){
-		grid = GameObject.Find ("Grid").GetComponent<Grid> ();
+		grid = gameObject.GetComponent<Grid> ();
 	}
 
 	void Start () {
@@ -18,7 +19,7 @@ public class Pathfinding : MonoBehaviour {
 	}
 
 	void Update () {
-
+		AstarFindPath (seeker.position, target.position);
 	}
 
 	public void AstarFindPath(Vector3 startPosition, Vector3 endPosition){
@@ -41,6 +42,7 @@ public class Pathfinding : MonoBehaviour {
 			closedList.Add (currentNode);
 
 			if (currentNode == endNode) {
+				RetracePath (startNode,endNode);
 				return;
 			}
 
@@ -48,18 +50,38 @@ public class Pathfinding : MonoBehaviour {
 				if(!neighbor.Walkable || closedList.Contains(neighbor)){
 					continue;
 				}
+				int newMovementCost = currentNode.gCost + GetDistance (currentNode,neighbor);
+				if(newMovementCost < neighbor.gCost || !openList.Contains(neighbor)){
+					neighbor.gCost = newMovementCost;
+					neighbor.hCost = GetDistance (neighbor, endNode);
+					neighbor.parentNode = currentNode;
 
+					if(!openList.Contains(neighbor)){
+						openList.Add (neighbor);
+					}
+				}
 			}
-
 		}
-
-
 	}
 
-	public int Heuristic(Vector3 startPosition, Vector3 endPosition){
-		Node startNode = grid.NodeFromWorldPoint (startPosition);
-		Node endNode = grid.NodeFromWorldPoint (endPosition);
+	public void RetracePath (Node startNode, Node endNode){
+		List<Node> path = new List<Node> ();
+		Node currentNode = endNode;
+		while (currentNode != startNode) {
+			path.Add (currentNode);
+			currentNode = currentNode.parentNode;		
+		}
+		path.Reverse();
 
-		return 0;
+		//grid.path = path;
+	}
+
+	int GetDistance(Node node1, Node node2){
+		int distX = Mathf.Abs (node1.gridX - node2.gridX);
+		int distY = Mathf.Abs (node1.gridY - node2.gridY);
+		if (distX > distY) {
+			return 14 * distY + 10 *(distX - distY);
+		}
+		return 14 * distX + 10 *(distY - distX);
 	}
 }
