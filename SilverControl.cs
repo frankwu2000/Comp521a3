@@ -6,99 +6,91 @@ using UnityEngine;
 public class SilverControl : MonoBehaviour {
 	public Grid gridClass;
 	public SilverPathfinding pathFindAlg;
-	[SerializeField]
-	public List<GameObject> agents;
-	public Dictionary<int,List<Node>> reservationTable;
-	public int tableSize;
-
-	public Transform ag1;
-	public Transform ag2;
-	public Transform tg1;
-	public Transform tg2;
-
-	public List<Node> path1;
-	public List<Node> path2;
-
-	public List<GameObject> agents;
-
 	ReservationTable rT;
+	[SerializeField]
+	public int tableSize;
+	public List<Agent> agents;
+	public int currentMove;
+
+
+	public GameObject g1;
+	public GameObject g2;
+	public GameObject t1;
+	public GameObject t2;
 
 	void Start () {
-		tableSize = 5;
-
-		pathFindAlg= new SilverPathfinding();
-
+		//set up
+	//	tableSize = 10;
 		gridClass = new Grid ();
 		gridClass.CreateGrid ();
+		pathFindAlg= new SilverPathfinding(gridClass,tableSize);
 		rT = new ReservationTable(gridClass,tableSize);
-
-
 		rT.FirstSet();
-//
-//		Node LastNode1 = pathFindAlg.SilverPathAssess(gridClass,ag1.position,tg1.position);
-//		List<Node> Optimalpath1 = pathFindAlg.RetracePath(gridClass,ag1.position,LastNode1.WorldPosition);
-//		path1 = pathFindAlg.PathFinding (Optimalpath1, rT, tableSize, gridClass, ag1.position,tg1.position);
-//
-//		Node LastNode2 = pathFindAlg.SilverPathAssess(gridClass,ag2.position,tg2.position);
-//		List<Node> Optimalpath2 = pathFindAlg.RetracePath(gridClass,ag2.position,LastNode2.WorldPosition);
-//		path2 = pathFindAlg.PathFinding (Optimalpath2, rT , tableSize ,gridClass,ag2.position,tg1.position);
-//
-		agents = new List<GameObject>();
+		agents = new List<Agent>();
 
+		Agent a1 = new Agent (g1, pathFindAlg);
+		Agent a2 = new Agent (g2, pathFindAlg);
+		a1.SetTarget (t1);
+		a2.SetTarget (t2);
+
+		agents.Add (a1);
+		agents.Add (a2);
 
 	}
-	
+
 	void Update () {
-		rT.Reset ();
-
-		Node LastNode1 = pathFindAlg.SilverPathAssess(gridClass,ag1.position,tg1.position);
-		List<Node> Optimalpath1 = pathFindAlg.RetracePath(gridClass,ag1.position,LastNode1.WorldPosition);
-		path1 = pathFindAlg.PathFinding (Optimalpath1, rT, tableSize, gridClass, ag1.position,tg1.position);
-
-		Node LastNode2 = pathFindAlg.SilverPathAssess(gridClass,ag2.position,tg2.position);
-		List<Node> Optimalpath2 = pathFindAlg.RetracePath(gridClass,ag2.position,LastNode2.WorldPosition);
-		path2 = pathFindAlg.PathFinding (Optimalpath2, rT , tableSize ,gridClass,ag2.position,tg1.position);
-
-
-//		Node LastNode1 = pathFindAlg.SilverPathAssess(gridClass,ag1.position,tg1.position);
-//		path1 = pathFindAlg.RetracePath(gridClass,ag1.position,LastNode1.WorldPosition);
-//
-//		Node LastNode2 = pathFindAlg.SilverPathAssess(gridClass,ag2.position,tg2.position);
-//		path2 = pathFindAlg.RetracePath(gridClass,ag2.position,LastNode2.WorldPosition);
+		currentMove = (int)Time.time % tableSize;
+		Step ();
 
 	}
 
-	//gizmos for dubugging
-	void OnDrawGizmos(){
-		Gizmos.color = Color.cyan;
-		Gizmos.DrawWireCube(Vector3.zero,new Vector3(gridClass.GridWorldSize.x,0,gridClass.GridWorldSize.y));
+	public void AddAgent(Agent a1){
+		agents.Add (a1);
+	}
 
-		if(gridClass.grid != null) {
-			foreach(Node node in gridClass.grid){
-				Gizmos.color = (node.Walkable)?Color.cyan:Color.gray;
-					
-				if(path1.Contains (node) && path2.Contains(node)){
-					Gizmos.color = Color.black;
+	public void Step(){
+		if (currentMove == 0) {
+			UpdatePath ();
+		} else {
+			//move one step
+			foreach (Agent a in agents) {
+				if (!a.ReachTarget()) {
+					if(currentMove<a.path.Count){
+						a.student.transform.position = a.path [currentMove].WorldPosition;
 					}
-				if (path1.Contains (node) && !path2.Contains(node)) {
-						Gizmos.color = Color.blue;
-					}
-				if (path2.Contains (node)&&!path1.Contains(node)) {
-					Gizmos.color = Color.red;
-					}
-//				for (int i = 0; i < tableSize; i++) {
-//					if(rT.CheckReserve(i,node)){
-//						Gizmos.color = Color.black;
-//					}
-//				}
-
-
-
-				//Gizmos.DrawCube (node.WorldPosition,new Vector3(1,2,1) * (gridClass.NodeRadius*2));
+				}
 			}
-
 		}
 	}
+
+	public void UpdatePath(){
+		
+		rT.Reset ();
+		foreach (Agent a in agents) {
+			a.UpdatePosition ();
+			a.SetPath (pathFindAlg.AllTogetherPathfind(rT,a.currentPosition,a.target));
+		}
+	}
+
+
+	//gizmos for dubugging
+//	void OnDrawGizmos(){
+//		Gizmos.color = Color.cyan;
+//		Gizmos.DrawWireCube(Vector3.zero,new Vector3(gridClass.GridWorldSize.x,0,gridClass.GridWorldSize.y));
+//
+//		if(gridClass.grid != null) {
+//			foreach(Node node in gridClass.grid){
+//				Gizmos.color = (node.Walkable)?Color.cyan:Color.gray;
+//					
+//				if(agents[0].path.Contains(node) || agents[1].path.Contains(node)){
+//					Gizmos.color = Color.red;
+//				}
+//
+//				Gizmos.DrawWireCube (node.WorldPosition,new Vector3(1,1,1) * (gridClass.NodeRadius*2));
+//			}
+//
+//		}
+//	}
 
 
 }

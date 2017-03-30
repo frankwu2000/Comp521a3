@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SilverPathfinding {
-	//public Transform seeker, target;
-	//public Dictionary<int,List<Node>> reservationTable;
-//	public Node lastNode;
-	//public List<Node> tempPath;
+	Grid this_gridClass;
+	int this_tableSize;
+	public SilverPathfinding(Grid gridClass,int tableSize){
+		this_gridClass = gridClass;
+		this_tableSize = tableSize;
+
+	}
 
 	public Node SilverPathAssess(Grid gridClass, Vector3 startPosition, Vector3 endPosition){
 
@@ -100,7 +103,7 @@ public class SilverPathfinding {
 			}
 			//to solve head to head 
 			resT.Reserve(time,currentNode);
-			//-------
+			//---------------------------------------------------------------
 			List<Node> notOptimal = new List<Node> ();
 			foreach(Node neighbour in gridClass.GetNeighbors(currentNode)){
 				neighbour.hCost = GetDistance (neighbour,endNode);
@@ -140,6 +143,12 @@ public class SilverPathfinding {
 		return best;
 	}
 
+	public List<Node> AllTogetherPathfind(ReservationTable resT, Vector3 StartPosition,Vector3 EndPosition){
+		Node LastNode = SilverPathAssess(this_gridClass,StartPosition,EndPosition);
+		List<Node> Optimalpath1 = RetracePath(this_gridClass,StartPosition,LastNode.WorldPosition);
+		List<Node> path1 = PathFinding (Optimalpath1, resT, this_tableSize, this_gridClass, StartPosition,EndPosition);
+		return path1;
+	}
 
 
 }
