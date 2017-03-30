@@ -4,6 +4,7 @@ using UnityEngine;
 
 [System.Serializable]
 public class SilverControl : MonoBehaviour {
+	public bool debug_mode;
 	public Grid gridClass;
 	public SilverPathfinding pathFindAlg;
 	ReservationTable rT;
@@ -12,53 +13,55 @@ public class SilverControl : MonoBehaviour {
 	public List<Agent> agents;
 	public int currentMove;
 
+	public Dictionary<Transform,Vector3> children;
 
-	public GameObject g1;
-	public GameObject g2;
-	public GameObject t1;
-	public GameObject t2;
 
 	void Start () {
 		//set up
-	//	tableSize = 10;
+		//tableSize = 20;
 		gridClass = new Grid ();
 		gridClass.CreateGrid ();
 		pathFindAlg= new SilverPathfinding(gridClass,tableSize);
 		rT = new ReservationTable(gridClass,tableSize);
 		rT.FirstSet();
 		agents = new List<Agent>();
-
-		Agent a1 = new Agent (g1, pathFindAlg);
-		Agent a2 = new Agent (g2, pathFindAlg);
-		a1.SetTarget (t1);
-		a2.SetTarget (t2);
-
-		agents.Add (a1);
-		agents.Add (a2);
+		children = new Dictionary<Transform, Vector3> ();
+		foreach (Transform child in transform)
+		{
+			Agent temp = new Agent (child);
+			temp.SetTarget (child.GetComponent<StudentBehaviour>().targetPostion);
+			agents.Add (temp);
+		}
 
 	}
+		
 
 	void Update () {
+		for (int i = 0; i < agents.Count; i++) {
+			if (agents [i].target != transform.GetChild (i).GetComponent<StudentBehaviour> ().targetPostion) {
+				agents [i].SetTarget (transform.GetChild (i).GetComponent<StudentBehaviour> ().targetPostion);
+			}
+		}
+
 		currentMove = (int)Time.time % tableSize;
 		Step ();
 
-	}
 
-	public void AddAgent(Agent a1){
-		agents.Add (a1);
 	}
 
 	public void Step(){
 		if (currentMove == 0) {
 			UpdatePath ();
-		} else {
+		} else if(agents.Count>0){
 			//move one step
 			foreach (Agent a in agents) {
-				if (!a.ReachTarget()) {
-					if(currentMove<a.path.Count){
-						a.student.transform.position = a.path [currentMove].WorldPosition;
+				if (!a.ReachTarget ()) {
+					if (currentMove < a.path.Count) {
+						Rigidbody rb = a.student.GetComponent<Rigidbody> ();
+						rb.MovePosition (a.path [currentMove].WorldPosition);
+						//	a.student.position = a.path [currentMove].WorldPosition;
 					}
-				}
+				} 
 			}
 		}
 	}
@@ -67,30 +70,34 @@ public class SilverControl : MonoBehaviour {
 		
 		rT.Reset ();
 		foreach (Agent a in agents) {
-			a.UpdatePosition ();
-			a.SetPath (pathFindAlg.AllTogetherPathfind(rT,a.currentPosition,a.target));
+			a.SetPath (pathFindAlg.AllTogetherPathfind(rT,a.student.position,a.target));
 		}
 	}
 
 
 	//gizmos for dubugging
-//	void OnDrawGizmos(){
-//		Gizmos.color = Color.cyan;
-//		Gizmos.DrawWireCube(Vector3.zero,new Vector3(gridClass.GridWorldSize.x,0,gridClass.GridWorldSize.y));
-//
-//		if(gridClass.grid != null) {
-//			foreach(Node node in gridClass.grid){
-//				Gizmos.color = (node.Walkable)?Color.cyan:Color.gray;
-//					
-//				if(agents[0].path.Contains(node) || agents[1].path.Contains(node)){
-//					Gizmos.color = Color.red;
-//				}
-//
-//				Gizmos.DrawWireCube (node.WorldPosition,new Vector3(1,1,1) * (gridClass.NodeRadius*2));
-//			}
-//
-//		}
-//	}
+
+	void OnDrawGizmos(){
+		if(debug_mode){
+			Gizmos.color = Color.cyan;
+			Gizmos.DrawWireCube(Vector3.zero,new Vector3(gridClass.GridWorldSize.x,0,gridClass.GridWorldSize.y));
+
+			if(gridClass.grid != null) {
+				foreach(Node node in gridClass.grid){
+					Gizmos.color = (node.Walkable)?Color.cyan:Color.gray;
+
+					foreach(Agent a in agents){
+						if(a.path.Contains(node)){
+							Gizmos.color = Color.red;
+						}
+					}
+
+					Gizmos.DrawWireCube (node.WorldPosition,new Vector3(0.2f,0.2f,0.2f));
+				}
+
+			}
+		}
+	}
 
 
 }
