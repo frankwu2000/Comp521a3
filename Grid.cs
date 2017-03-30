@@ -62,6 +62,7 @@ public class Grid {
 	public List<Node> GetNeighbors(Node node){
 		List<Node> neighbors = new List<Node> ();
 
+		//8 neighbours
 		for(int x = -1 ; x<=1 ; x++){
 			for(int y = -1; y<=1 ; y++){
 				if(x == 0 && y == 0 ){
@@ -74,6 +75,29 @@ public class Grid {
 				}
 			}
 		}
+
+		//4 neighbours
+//		int checkX = node.gridX + 1; 
+//		int checkY = node.gridY + 0;
+//		if (checkX >= 0 && checkX < GridSizex && checkY >= 0 && checkY < GridSizey) {
+//			neighbors.Add (grid[checkX,checkY]);
+//		}
+//		checkX = node.gridX + 0; 
+//		checkY = node.gridY + 1;
+//		if (checkX >= 0 && checkX < GridSizex && checkY >= 0 && checkY < GridSizey) {
+//			neighbors.Add (grid[checkX,checkY]);
+//		}
+//		checkX = node.gridX - 1; 
+//		checkY = node.gridY + 0;
+//		if (checkX >= 0 && checkX < GridSizex && checkY >= 0 && checkY < GridSizey) {
+//			neighbors.Add (grid[checkX,checkY]);
+//		}
+//		checkX = node.gridX + 0; 
+//		checkY = node.gridY - 1;
+//		if (checkX >= 0 && checkX < GridSizex && checkY >= 0 && checkY < GridSizey) {
+//			neighbors.Add (grid[checkX,checkY]);
+//		}
+
 		return neighbors;
 	}
 
@@ -87,8 +111,5 @@ public class Grid {
 		int y = Mathf.RoundToInt((GridSizey-1) * percentY);
 		return grid[x,y];
 	}
-
-
-
 
 }

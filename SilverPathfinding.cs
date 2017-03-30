@@ -35,6 +35,7 @@ public class SilverPathfinding {
 			}
 
 			foreach (Node neighbor in gridClass.GetNeighbors(currentNode)) {
+				
 				if(!neighbor.Walkable || closedList.Contains(neighbor)){
 					continue;
 				}
@@ -53,7 +54,6 @@ public class SilverPathfinding {
 				}
 			}
 		}
-
 		return currentNode;
 	}
 
@@ -85,18 +85,61 @@ public class SilverPathfinding {
 		return 14 * distX + 10 *(distY - distX);
 	}
 
-//	bool CheckListWalkable(Dictionary <int,List<Node>> reserT,int time,Node neighbor){
-//		
-//		List<Node> templist = reserT[time];
-//		foreach (Node n in templist) {
-//			if (n == neighbor) {
-//				return n.Walkable;
-//			}
-//		}
-//		Debug.Log ("should not reach here!");
-//		return false;
-//	}
-//
+//---------------------pathfinding----------------------//
+
+	public List<Node> PathFinding(List<Node> optimalPath, ReservationTable resT,int tableSize, Grid gridClass, Vector3 StartPosition,Vector3 EndPosition){
+
+		Node currentNode = gridClass.NodeFromWorldPoint (StartPosition);
+		Node endNode = gridClass.NodeFromWorldPoint (EndPosition);
+		currentNode.hCost = GetDistance (currentNode,endNode);
+
+		List<Node> realPath = new List<Node>();
+		for (int time = 0; time < tableSize; time++) {
+			if (time > optimalPath.Count - 1) {
+				break;
+			}
+			//to solve head to head 
+			resT.Reserve(time,currentNode);
+			//-------
+			List<Node> notOptimal = new List<Node> ();
+			foreach(Node neighbour in gridClass.GetNeighbors(currentNode)){
+				neighbour.hCost = GetDistance (neighbour,endNode);
+
+				if (!resT.CheckReserve (time, neighbour) && optimalPath [time]== (neighbour)) {
+					currentNode = neighbour;
+					notOptimal = new List<Node> ();
+					break;
+				} else if (!resT.CheckReserve (time, neighbour)) {
+					
+					notOptimal.Add (neighbour);
+				}
+			}
+			if (notOptimal.Count > 0) {
+				
+				Node subOptimal = BestNodeFromList (notOptimal,gridClass);
+				if(currentNode.hCost > subOptimal.hCost){
+					currentNode = subOptimal;
+				}
+			}
+			realPath.Add (currentNode);
+			//reserve
+			resT.Reserve(time,currentNode);
+		}
+		return realPath;
+//		return optimalPath;
+	}
+
+
+	Node BestNodeFromList(List<Node> ls, Grid gridClass){
+		Node best = ls [0];
+		foreach (Node n in ls) {
+			if(n.hCost < best.hCost){
+				best = n;
+			}
+		}
+		return best;
+	}
+
 
 
 }

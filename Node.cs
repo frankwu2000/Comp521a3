@@ -30,4 +30,15 @@ public class Node {
 			return gCost + hCost;
 		}
 	}
+
+	public bool NodeEquals (Node obj)
+	{
+		if(obj.WorldPosition.x == WorldPosition.x &&
+			obj.WorldPosition.y == WorldPosition.y &&
+			obj.WorldPosition.z == WorldPosition.z){
+			return true;
+		}
+		return false;
+	}
+
 }
