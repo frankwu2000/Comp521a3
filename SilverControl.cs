@@ -4,6 +4,7 @@ using UnityEngine;
 
 [System.Serializable]
 public class SilverControl : MonoBehaviour {
+	public GameObject Student;
 	public bool debug_mode;
 	public Grid gridClass;
 	public SilverPathfinding pathFindAlg;
@@ -12,6 +13,10 @@ public class SilverControl : MonoBehaviour {
 	public int tableSize;
 	public List<Agent> agents;
 	public int currentMove;
+	public float stepRate;
+	public float nextStepTime;
+	int oldChildCount;
+
 
 	public Dictionary<Transform,Vector3> children;
 
@@ -32,22 +37,42 @@ public class SilverControl : MonoBehaviour {
 			temp.SetTarget (child.GetComponent<StudentBehaviour>().targetPostion);
 			agents.Add (temp);
 		}
+		oldChildCount = transform.childCount;
+
+		currentMove = 0;
+		stepRate = 0.1f;
+		nextStepTime = 0f;
+	
 
 	}
 		
+	void Update(){
+		
+		if(Input.GetKeyDown(KeyCode.Space)){
+			GameObject clone = Instantiate(Student,gameObject.transform) as GameObject;
+			Agent temp = new Agent (clone.transform);
+			agents.Add (temp);
+		}
 
-	void Update () {
+
 		for (int i = 0; i < agents.Count; i++) {
 			if (agents [i].target != transform.GetChild (i).GetComponent<StudentBehaviour> ().targetPostion) {
 				agents [i].SetTarget (transform.GetChild (i).GetComponent<StudentBehaviour> ().targetPostion);
 			}
 		}
+		if(currentMove>=tableSize ){
+			currentMove =0;
+		}
 
-		currentMove = (int)Time.time % tableSize;
-		Step ();
+		if(currentMove<tableSize && Time.time>nextStepTime){
+			nextStepTime = Time.time + stepRate;
+			Step ();
+			currentMove ++;
 
-
+		}
 	}
+
+
 
 	public void Step(){
 		if (currentMove == 0) {
@@ -56,7 +81,7 @@ public class SilverControl : MonoBehaviour {
 			//move one step
 			foreach (Agent a in agents) {
 				if (!a.ReachTarget ()) {
-					if (currentMove < a.path.Count) {
+					if (a.path != null && currentMove < a.path.Count) {
 						Rigidbody rb = a.student.GetComponent<Rigidbody> ();
 						rb.MovePosition (a.path [currentMove].WorldPosition);
 						//	a.student.position = a.path [currentMove].WorldPosition;
